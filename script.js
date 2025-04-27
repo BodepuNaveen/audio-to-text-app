@@ -60,7 +60,7 @@ async function transcribeAudio() {
           }
         });
 
-        // Assign first speaker as Agent, second as Customer
+        // Assign first speaker as Agent, second speaker as Customer
         if (speakers.length > 1) {
           speakerMapping[speakers[0]] = "Agent";
           speakerMapping[speakers[1]] = "Customer";
@@ -83,7 +83,9 @@ async function transcribeAudio() {
         fullTranscript = checkData.text;
       }
 
-      document.getElementById('outputText').value = fullTranscript;
+      document.getElementById('outputText').value = fullTranscript + "\n\n--- CALL SUMMARY ---\nLoading summary...";
+
+      summarizeConversation(fullTranscript);
 
     } else if (checkData.status === 'failed') {
       alert('Transcription failed!');
@@ -95,13 +97,38 @@ async function transcribeAudio() {
   }
 }
 
+// 🔥 Summarize using your OWN Vertex Proxy
+async function summarizeConversation(text) {
+  console.log("Sending text to Vertex Summarizer...");
+
+  const response = await fetch('https://vertex-summarizer-proxy.vercel.app/api/summarize', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ text: text })
+  });
+
+  const data = await response.json();
+  console.log("Summary Data:", data);
+
+  let summaryText = "Summary not available.";
+
+  if (data && data.summary) {
+    summaryText = data.summary.trim();
+  } else if (data.error) {
+    summaryText = "Error from summarizer: " + data.error;
+  }
+
+  const oldText = document.getElementById('outputText').value.split("\n\n--- CALL SUMMARY ---")[0];
+  document.getElementById('outputText').value = oldText + "\n\n--- CALL SUMMARY ---\n" + summaryText;
+}
+
 function downloadText() {
   const text = document.getElementById('outputText').value;
   const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = "transcription.txt";
+  link.download = "transcription_summary.txt";
   link.click();
 }
-
-
