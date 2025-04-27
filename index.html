@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Audio to Text Converter</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    textarea { width: 100%; height: 200px; margin-top: 20px; }
+    button { margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <h1>Upload Audio File to Transcribe</h1>
+  
+  <input type="file" id="audioFile" accept="audio/*"><br><br>
+  <button onclick="transcribeAudio()">Transcribe</button>
+
+  <h2>Transcription Result:</h2>
+  <textarea id="outputText"></textarea><br>
+  <button onclick="downloadText()">Download Text</button>
+
+  <script src="script.js"></script>
+</body>
+</html>
