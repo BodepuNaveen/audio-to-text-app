@@ -51,15 +51,23 @@ async function transcribeAudio() {
 
       if (checkData.words) {
         let conversation = "";
+        let speakerMapping = {}; // Track speaker mapping
+        let speakerCount = 0;
         let currentSpeaker = "";
+
         checkData.words.forEach(wordInfo => {
           if (wordInfo.speaker !== currentSpeaker) {
             currentSpeaker = wordInfo.speaker;
-            const speakerName = currentSpeaker === "0" ? "Customer" : "Agent";
-            conversation += `\n${speakerName}: `;
+
+            if (!(currentSpeaker in speakerMapping)) {
+              speakerMapping[currentSpeaker] = speakerCount === 0 ? "Agent" : "Customer";
+              speakerCount++;
+            }
+            conversation += `\n${speakerMapping[currentSpeaker]}: `;
           }
           conversation += wordInfo.text + " ";
         });
+
         fullTranscript = conversation;
       } else {
         fullTranscript = checkData.text;
@@ -79,18 +87,16 @@ async function transcribeAudio() {
   }
 }
 
-// Summarize using FREE Public API
+// 🔥 Summarize using your own Proxy Server (NO CORS issues)
 async function summarizeConversation(text) {
-  console.log("Sending text to Public Summarizer...");
+  console.log("Sending text to Proxy Summarizer...");
 
-  const response = await fetch('https://api.smrzr.io/summarize?num_sentences=3', {
+  const response = await fetch('https://summarise-sooty.vercel.app/api/summarize', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({
-      text: text
-    })
+    body: JSON.stringify({ text: text })
   });
 
   const data = await response.json();
@@ -99,7 +105,7 @@ async function summarizeConversation(text) {
   let summaryText = "Summary not available.";
 
   if (data && data.summary) {
-    summaryText = data.summary.join(' ');
+    summaryText = data.summary.trim();
   } else if (data.error) {
     summaryText = "Error from summarizer: " + data.error;
   }
@@ -116,3 +122,4 @@ function downloadText() {
   link.download = "transcription_summary.txt";
   link.click();
 }
+
